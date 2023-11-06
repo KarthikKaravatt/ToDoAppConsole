@@ -1,4 +1,4 @@
-﻿namespace ToDoAppConsole.ToDoModel
+﻿namespace ToDoApplicationConsole.ToDoModel
 {
     /// <summary>
     /// Represents a  collection of ToDoTasks
@@ -25,7 +25,7 @@
         {
             if (_tasks.Contains(task))
             {
-                return (false, ToDoModelConstants.TaskDoesNotExist);
+                return (false, ToDoModelConstants.TaskAlreadyExists);
             }
             _tasks.Add(task);
             return (true, ToDoModelConstants.TaskAdded);

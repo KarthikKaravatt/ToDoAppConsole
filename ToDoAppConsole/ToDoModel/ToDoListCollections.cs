@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace ToDoAppConsole.ToDoModel
+﻿namespace ToDoApplicationConsole.ToDoModel
 {
     /// <summary>
     /// A collection of ToDoList objects organized by groups
@@ -9,15 +7,22 @@ namespace ToDoAppConsole.ToDoModel
     {
         private readonly Dictionary<string, ToDoList> _listGroups;
 
+        private readonly Dictionary<string, ToDoList> _completedTasks;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ToDoListCollections"/> class.
         /// </summary>
-        /// <param name="listGroups">Contains the ToDoLists.</param>
-        public ToDoListCollections(Dictionary<string, ToDoList> listGroups)
+        /// <param name="listGroups">The list groups.</param>
+        /// <param name="completedTasks">The completed tasks.</param>
+        public ToDoListCollections(Dictionary<string, ToDoList> listGroups, Dictionary<string, ToDoList> completedTasks)
         {
             _listGroups = listGroups;
+            _completedTasks = completedTasks;
             // Default Group
-            listGroups.Add(ToDoModelConstants.GlobalGroupName, new ToDoList(new SortedSet<ToDoTask>()));
+            _listGroups.Add(ToDoModelConstants.GlobalGroupName,
+                new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
+            _completedTasks.Add(ToDoModelConstants.GlobalGroupName,
+                new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
         }
 
         /// <summary>
@@ -31,9 +36,8 @@ namespace ToDoAppConsole.ToDoModel
             {
                 return (false, ToDoModelConstants.GroupAlreadyExists);
             }
-            _listGroups.Add(name, new ToDoList(new SortedSet<ToDoTask>()));
+            _listGroups.Add(name, new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
             return (true, ToDoModelConstants.GroupAdded);
-
         }
 
         /// <summary>
@@ -45,50 +49,15 @@ namespace ToDoAppConsole.ToDoModel
         {
             if (!_listGroups.ContainsKey(name)) return (false, ToDoModelConstants.GroupDoesNotExist);
             _listGroups.Remove(name);
+            // Do not allow the deletion of the GlobalGroup
+            if (name == ToDoModelConstants.GlobalGroupName)
+            {
+                _listGroups.Add(ToDoModelConstants.GlobalGroupName,
+                    new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
+            }
             return (true, ToDoModelConstants.GroupRemoved);
         }
 
-        /// <summary>
-        /// Adds the task to the global list.
-        /// </summary>
-        /// <param name="name">The name of the task.</param>
-        /// <returns>Tuple with boolean indicating success and a description message</returns>
-        public (bool success, string message) AddTask(string name)
-        {
-            // This should never happen, but you never know
-            if (!_listGroups.ContainsKey(ToDoModelConstants.GlobalGroupName)) return (false, ToDoModelConstants.GroupDoesNotExist);
-            ToDoList list = _listGroups[ToDoModelConstants.GlobalGroupName];
-            return list.Add(new ToDoTask(name));
-        }
-
-        /// <summary>
-        /// Adds the task to the global list with a time of completion.
-        /// </summary>
-        /// <param name="name">The name of the task.</param>
-        /// <param name="completionDateTime">The completion date time.</param>
-        /// <returns>Tuple with boolean indicating success and a description message</returns>
-        public (bool success, string message) AddTask(string name, DateTime completionDateTime)
-        {
-            if (!_listGroups.ContainsKey(ToDoModelConstants.GlobalGroupName)) return (false, ToDoModelConstants.GroupDoesNotExist);
-            ToDoList list = _listGroups[ToDoModelConstants.GlobalGroupName];
-            return list.Add(new ToDoTask(name, completionDateTime));
-        }
-
-        /// <summary>
-        /// Adds the task to a group.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="group">The group.</param>
-        /// <returns>
-        /// A tuple containing a boolean indicating success if true and failure if false
-        /// and a string indicating reason of failure, or an indication of success
-        /// </returns>
-        public (bool success, string message) AddTask(string name, string group)
-        {
-            if (!_listGroups.ContainsKey(name)) return (false, ToDoModelConstants.GroupDoesNotExist);
-            ToDoList list = _listGroups[name];
-            return list.Add(new ToDoTask(name));
-        }
 
         /// <summary>
         /// Adds the task to a group with a completion date.
@@ -97,11 +66,26 @@ namespace ToDoAppConsole.ToDoModel
         /// <param name="completionDateTime">The completion date time.</param>
         /// <param name="group">The group.</param>
         /// <returns> A tuple with a boolean to indicate success and a description</returns>
-        public (bool success, string message) AddTask(string name,DateTime completionDateTime, string group)
+        public (bool success, string message) AddTask(string name, string group = ToDoModelConstants.GlobalGroupName, DateTime completionDateTime = default)
         {
-            if (!_listGroups.ContainsKey(name)) return (false, ToDoModelConstants.GroupDoesNotExist);
-            ToDoList list = _listGroups[name];
+            if(completionDateTime == default) completionDateTime = DateTime.MaxValue;
+            if (!_listGroups.ContainsKey(group)) return (false, ToDoModelConstants.GroupDoesNotExist);
+            ToDoList list = _listGroups[group];
             return list.Add(new ToDoTask(name, completionDateTime));
+        }
+
+        /// <summary>
+        /// Removes the task from a task group.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="group">The group.</param>
+        /// <returns>A tuple with a boolean indicating success and a description string</returns>
+        public (bool success, string message) RemoveTask(string name, string group = ToDoModelConstants.GlobalGroupName)
+        {
+            return !_listGroups.ContainsKey(group)
+                ? (false, ToDoModelConstants.GroupDoesNotExist)
+                : _listGroups[group]
+                    .Remove(name);
         }
 
         //TODO: Delete this, for testing only
@@ -110,6 +94,9 @@ namespace ToDoAppConsole.ToDoModel
             foreach (var keyValuePair in _listGroups)
             {
                 Console.WriteLine(keyValuePair.Key);
+                Console.WriteLine("-------------");
+                keyValuePair.Value.PrintList();
+                Console.WriteLine("\n");
             }
         }
     }

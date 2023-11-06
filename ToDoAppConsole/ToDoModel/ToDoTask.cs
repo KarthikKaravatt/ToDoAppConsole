@@ -1,4 +1,4 @@
-﻿namespace ToDoAppConsole.ToDoModel
+﻿namespace ToDoApplicationConsole.ToDoModel
 {
     /// <summary>
     /// Represents a task in a to-do list.
@@ -23,23 +23,18 @@
         public DateTime CompletionDate { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ToDoTask"/> class with a name and no completion date.
+        /// Initializes a new instance of the <see cref="ToDoTask"/> class.
         /// </summary>
-        /// <param name="name">The name of the task.</param>
-        public ToDoTask(string name)
+        /// <param name="name">The name.</param>
+        /// <param name="completionDate">The completion date.</param>
+        /// <exception cref="System.ArgumentNullException">name</exception>
+        public ToDoTask(string name, DateTime completionDate = default)
         {
-            // Have to use private member variable to avoid CS8618 warning
             _name = name ?? throw new ArgumentNullException(nameof(name));
-            CompletionDate = DateTime.MaxValue;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ToDoTask" /> class with a name and a completion date.
-        /// </summary>
-        /// <param name="name">The name of the task.</param>
-        /// <param name="completionDate">The completion date of the task.</param>
-        public ToDoTask(string name, DateTime completionDate) : this(name)
-        {
+            if (completionDate == default)
+            {
+                CompletionDate = DateTime.MaxValue;
+            }
             CompletionDate = completionDate;
         }
     }
@@ -60,8 +55,18 @@
             if (x == null) return -1;
             if (y == null) return 1;
 
-            return x.CompletionDate.CompareTo(y.CompletionDate);
+            int dateComparison = x.CompletionDate.CompareTo(y.CompletionDate);
+            if (dateComparison == 0)
+            {
+                // If dates are equal, compare by task name
+                return String.Compare(x.Name, y.Name, StringComparison.Ordinal);
+            }
+            else
+            {
+                return dateComparison;
+            }
         }
+
     }
 
 }
