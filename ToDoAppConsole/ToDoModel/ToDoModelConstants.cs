@@ -21,5 +21,7 @@ namespace ToDoApplicationConsole.ToDoModel
         public const string GroupRemoved = "Success: Group removed";
         public const string GroupAdded = "Success: Group added";
         public const string TaskRemoved = "Success: Task removed";
+        public const string TaskCompleted = "Success: Task completed";
+        public const string TaskCompletionUnDone = "Success: Task un-completed";
     }
 }

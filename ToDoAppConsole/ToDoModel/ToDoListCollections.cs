@@ -7,7 +7,6 @@
     {
         private readonly Dictionary<string, ToDoList> _listGroups;
 
-        private readonly Dictionary<string, ToDoList> _completedTasks;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ToDoListCollections"/> class.
@@ -17,12 +16,10 @@
         public ToDoListCollections(Dictionary<string, ToDoList> listGroups, Dictionary<string, ToDoList> completedTasks)
         {
             _listGroups = listGroups;
-            _completedTasks = completedTasks;
             // Default Group
             _listGroups.Add(ToDoModelConstants.GlobalGroupName,
-                new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
-            _completedTasks.Add(ToDoModelConstants.GlobalGroupName,
-                new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
+                new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer()),
+                    new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
         }
 
         /// <summary>
@@ -32,11 +29,10 @@
         /// <returns> A tuple containing a boolean indicating success and a message description.</returns>
         public (bool success, string message) AddListGroup(string name)
         {
-            if (_listGroups.ContainsKey(name))
-            {
-                return (false, ToDoModelConstants.GroupAlreadyExists);
-            }
-            _listGroups.Add(name, new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
+            if (_listGroups.ContainsKey(name)) return (false, ToDoModelConstants.GroupAlreadyExists);
+            _listGroups.Add(name,
+                new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer()),
+                    new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
             return (true, ToDoModelConstants.GroupAdded);
         }
 
@@ -53,7 +49,8 @@
             if (name == ToDoModelConstants.GlobalGroupName)
             {
                 _listGroups.Add(ToDoModelConstants.GlobalGroupName,
-                    new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
+                    new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer()),
+                        new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
             }
             return (true, ToDoModelConstants.GroupRemoved);
         }
@@ -88,6 +85,48 @@
                     .Remove(name);
         }
 
+        /// <summary>
+        /// Removes the completed task.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="group">The group.</param>
+        /// <returns>A tuple with a boolean indicating success and a string message as a description</returns>
+        public (bool success, string message) RemoveCompletedTask(string name, string group = ToDoModelConstants.GlobalGroupName)
+        {
+            return !_listGroups.ContainsKey(group)
+                ? (false, ToDoModelConstants.GroupDoesNotExist)
+                : _listGroups[group]
+                    .RemoveCompleted(name);
+        }
+
+        /// <summary>
+        /// Completes the task.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="group">The group.</param>
+        /// <returns>A tuple containing a boolean indication success and a string indication description</returns>
+        public (bool success, string message) CompleteTask(string name, string group = ToDoModelConstants.GlobalGroupName)
+        {
+            return !_listGroups.ContainsKey(group)
+                ? (false, ToDoModelConstants.GroupDoesNotExist)
+                : _listGroups[group]
+                    .Complete(name);
+        }
+
+        /// <summary>
+        /// Uns the do completed.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="groupName">Name of the group.</param>
+        /// <returns>A tuple with a boolean indicating success and a string as a description</returns>
+        public (bool success, string message) UnDoCompleted(string name, string groupName = ToDoModelConstants.GlobalGroupName)
+        {
+            return !_listGroups.ContainsKey(groupName)
+                ? (false, ToDoModelConstants.GroupDoesNotExist)
+                : _listGroups[groupName]
+                    .UndoCompleted(name);
+        }
+
         //TODO: Delete this, for testing only
         public void PrintGroups()
         {
@@ -96,6 +135,9 @@
                 Console.WriteLine(keyValuePair.Key);
                 Console.WriteLine("-------------");
                 keyValuePair.Value.PrintList();
+                Console.WriteLine("\n");
+                Console.WriteLine("Completed:");
+                keyValuePair.Value.PrintCompleted();
                 Console.WriteLine("\n");
             }
         }
