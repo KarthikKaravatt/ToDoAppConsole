@@ -1,13 +1,17 @@
-﻿namespace ToDoApplicationConsole.ToDoModel
+﻿using System.Collections;
+
+namespace ToDoApplicationConsole.ToDoModel
 {
     /// <summary>
     /// Represents a  collection of ToDoTasks
     /// </summary>
     internal class ToDoList
     {
-        // Tasks are seperated
+        // Tasks are separated
         private readonly SortedSet<ToDoTask> _tasks;
+
         private readonly SortedSet<ToDoTask> _completedTasks;
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ToDoList"/> class.
@@ -27,6 +31,7 @@
         /// <returns>True if task was added successfully or false if addition failed.</returns>
         internal (bool success, string message) Add(ToDoTask task)
         {
+            if (task.Name == ToDoModelConstants.ToDoFileGroupSeparator) return (false, ToDoModelConstants.InvalidTaskName);
             if (_tasks.Contains(task)) return (false, ToDoModelConstants.TaskAlreadyExists);
             // If Task was previously completed then un-complete it
             if (_completedTasks.Contains(task)) _completedTasks.Remove(task);
@@ -70,6 +75,20 @@
         }
 
         /// <summary>
+        /// Adds the task to the completed task, used when reading the file.
+        /// </summary>
+        /// <param name="completeTask">The complete task.</param>
+        /// <returns></returns>
+        internal (bool success, string message) AddCompletedTask(ToDoTask completeTask)
+        {
+            if (_tasks.FirstOrDefault(task => task.Name == completeTask.Name) != null) return (false, ToDoModelConstants.TaskAlreadyExists);
+            if (_completedTasks.FirstOrDefault(task => task.Name == completeTask.Name) != null) return (false, ToDoModelConstants.TaskAlreadyExists);
+            _completedTasks.Add(completeTask);
+            return (true, ToDoModelConstants.CompletedTaskAdded);
+
+        }
+
+        /// <summary>
         /// Removes the completed task.
         /// </summary>
         /// <param name="taskName">Name of the task.</param>
@@ -98,6 +117,16 @@
             _completedTasks.Remove(taskToUndo);
             _tasks.Add(taskToUndo);
             return (true, ToDoModelConstants.TaskCompletionUnDone);
+        }
+
+        internal List<string> GetTaskData()
+        {
+            List<string> tasks = new List<string>();
+            foreach (var item in _tasks)
+            {
+                tasks.Add(item.ToString());
+            }
+            return tasks;
         }
 
 

@@ -1,4 +1,8 @@
-﻿namespace ToDoApplicationConsole.ToDoModel
+﻿using System.Text.Json;
+using System.IO;
+using System.Security.Permissions;
+using System.Security;
+namespace ToDoApplicationConsole.ToDoModel
 {
     /// <summary>
     /// A collection of ToDoList objects organized by groups
@@ -22,6 +26,25 @@
                     new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
         }
 
+        public void SaveListsToFile(string path = ToDoModelConstants.SaveDataFilePath)
+        {
+            string fileString = ToDoModelConstants.ToDoFileGroupSeparator;
+            foreach (KeyValuePair<string, ToDoList> listGroup in _listGroups)
+            {
+                fileString += "\n" + listGroup.Key;
+                foreach (string task in listGroup.Value.GetTaskData())
+                {
+                    fileString += "\n" + task;
+                }
+
+                fileString += "\n" + ToDoModelConstants.ToDoFileGroupSeparator;
+            }
+
+            Console.WriteLine(fileString);
+        }
+
+
+
         /// <summary>
         /// Adds the list group.
         /// </summary>
@@ -29,6 +52,7 @@
         /// <returns> A tuple containing a boolean indicating success and a message description.</returns>
         public (bool success, string message) AddListGroup(string name)
         {
+            if (name == ToDoModelConstants.ToDoFileGroupSeparator) return (false, ToDoModelConstants.InvalidGroupName);
             if (_listGroups.ContainsKey(name)) return (false, ToDoModelConstants.GroupAlreadyExists);
             _listGroups.Add(name,
                 new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer()),
@@ -65,7 +89,7 @@
         /// <returns> A tuple with a boolean to indicate success and a description</returns>
         public (bool success, string message) AddTask(string name, string group = ToDoModelConstants.GlobalGroupName, DateTime completionDateTime = default)
         {
-            if(completionDateTime == default) completionDateTime = DateTime.MaxValue;
+            if (completionDateTime == default) completionDateTime = DateTime.MaxValue;
             if (!_listGroups.ContainsKey(group)) return (false, ToDoModelConstants.GroupDoesNotExist);
             ToDoList list = _listGroups[group];
             return list.Add(new ToDoTask(name, completionDateTime));

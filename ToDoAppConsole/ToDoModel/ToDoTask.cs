@@ -37,6 +37,12 @@
             }
             CompletionDate = completionDate;
         }
+
+        public override string ToString()
+        {
+            return Name + " " + CompletionDate;
+
+        }
     }
 
     /// <summary>
