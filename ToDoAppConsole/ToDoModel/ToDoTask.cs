@@ -46,7 +46,7 @@
         /// </returns>
         public override string ToString()
         {
-            return Name + ToDoModelConstants.ToDoStringSeparator+ CompletionDate;
+            return Name + ToDoModelConstants.ToDoStringSeparator + CompletionDate;
 
         }
     }

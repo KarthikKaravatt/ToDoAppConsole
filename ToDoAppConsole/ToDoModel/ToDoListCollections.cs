@@ -1,8 +1,4 @@
-﻿using System.Text.Json;
-using System.IO;
-using System.Security.Permissions;
-using System.Security;
-namespace ToDoApplicationConsole.ToDoModel
+﻿namespace ToDoApplicationConsole.ToDoModel
 {
     /// <summary>
     /// A collection of ToDoList objects organized by groups
@@ -16,8 +12,7 @@ namespace ToDoApplicationConsole.ToDoModel
         /// Initializes a new instance of the <see cref="ToDoListCollections"/> class.
         /// </summary>
         /// <param name="listGroups">The list groups.</param>
-        /// <param name="completedTasks">The completed tasks.</param>
-        public ToDoListCollections(Dictionary<string, ToDoList> listGroups, Dictionary<string, ToDoList> completedTasks)
+        public ToDoListCollections(Dictionary<string, ToDoList> listGroups)
         {
             _listGroups = listGroups;
             // Default Group
@@ -56,7 +51,7 @@ namespace ToDoApplicationConsole.ToDoModel
 
             try
             {
-                if(File.Exists(path)) File.Delete(path);
+                if (File.Exists(path)) File.Delete(path);
                 File.WriteAllText(ToDoModelConstants.SaveDataFilePath, fileString);
             }
             catch (IOException e)
@@ -76,18 +71,18 @@ namespace ToDoApplicationConsole.ToDoModel
         public static ToDoListCollections ReadListsFromFile(string path = ToDoModelConstants.SaveDataFilePath)
         {
             ToDoListCollections list = new ToDoListCollections(
-                new Dictionary<string, ToDoList>(new List<KeyValuePair<string, ToDoList>>()),
                 new Dictionary<string, ToDoList>(new List<KeyValuePair<string, ToDoList>>()));
             try
             {
                 int i = 0;
                 string[] data = File.ReadAllLines(path);
-                while (i < data.Length-1)
+                while (i < data.Length - 1)
                 {
                     // Parses a group
                     if (data[i] == ToDoModelConstants.ToDoFileGroupSeparator)
                     {
-                        string groupName = data[i+1];
+                        string groupName = data[i + 1];
+                        // Must not add the global group as it is created when the object is instanced
                         if (groupName != ToDoModelConstants.GlobalGroupName)
                         {
                             (bool success, string message) output = list.AddListGroup(groupName);
@@ -99,7 +94,7 @@ namespace ToDoApplicationConsole.ToDoModel
 
                         // parses tasks of a group
                         i++;
-                        while (data[i+1] != ToDoModelConstants.ToDoCompletedSeparator)
+                        while (data[i + 1] != ToDoModelConstants.ToDoCompletedSeparator)
                         {
                             string[] splitTask = data[i + 1].Split(ToDoModelConstants.ToDoStringSeparator);
                             string taskName = splitTask[0];
@@ -114,7 +109,7 @@ namespace ToDoApplicationConsole.ToDoModel
 
                         // parses completed tasks of the group
                         i++;
-                        while (data[i+1] != ToDoModelConstants.ToDoCompletedSeparator)
+                        while (data[i + 1] != ToDoModelConstants.ToDoCompletedSeparator)
                         {
 
                             string[] splitTask = data[i + 1].Split(ToDoModelConstants.ToDoStringSeparator);
@@ -141,11 +136,6 @@ namespace ToDoApplicationConsole.ToDoModel
 
             return list;
         }
-
-
-
-
-
         /// <summary>
         /// Adds the list group.
         /// </summary>
@@ -153,8 +143,10 @@ namespace ToDoApplicationConsole.ToDoModel
         /// <returns> A tuple containing a boolean indicating success and a message description.</returns>
         public (bool success, string message) AddListGroup(string name)
         {
+            // name cannot be the separators so file reading doesn't break
             if (name == ToDoModelConstants.ToDoFileGroupSeparator) return (false, ToDoModelConstants.InvalidGroupName);
             if (name == ToDoModelConstants.ToDoCompletedSeparator) return (false, ToDoModelConstants.InvalidGroupName);
+
             if (_listGroups.ContainsKey(name)) return (false, ToDoModelConstants.GroupAlreadyExists);
             _listGroups.Add(name,
                 new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer()),
@@ -196,6 +188,14 @@ namespace ToDoApplicationConsole.ToDoModel
             ToDoList list = _listGroups[group];
             return list.Add(new ToDoTask(name, completionDateTime));
         }
+
+        /// <summary>
+        /// Adds the completed task.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="group">The group.</param>
+        /// <param name="completionDateTime">The completion date time.</param>
+        /// <returns>A tuple containing a boolean indicating success and a message string.</returns>
 
         public (bool success, string message) AddCompletedTask(string name, string group = ToDoModelConstants.GlobalGroupName, DateTime completionDateTime = default)
         {

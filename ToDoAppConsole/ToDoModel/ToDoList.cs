@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace ToDoApplicationConsole.ToDoModel
+﻿namespace ToDoApplicationConsole.ToDoModel
 {
     /// <summary>
     /// Represents a  collection of ToDoTasks
@@ -33,7 +31,7 @@ namespace ToDoApplicationConsole.ToDoModel
         {
             // Tasks names cannot contain group or string separators due to file reading
             if (task.Name == ToDoModelConstants.ToDoFileGroupSeparator) return (false, ToDoModelConstants.InvalidTaskName);
-            if (task.Name.Contains(ToDoModelConstants.ToDoStringSeparator) ) return (false, ToDoModelConstants.InvalidTaskName);
+            if (task.Name.Contains(ToDoModelConstants.ToDoStringSeparator)) return (false, ToDoModelConstants.InvalidTaskName);
             if (task.Name == ToDoModelConstants.ToDoCompletedSeparator) return (false, ToDoModelConstants.InvalidTaskName);
 
             if (_tasks.Contains(task)) return (false, ToDoModelConstants.TaskAlreadyExists);
@@ -86,7 +84,7 @@ namespace ToDoApplicationConsole.ToDoModel
         internal (bool success, string message) AddCompletedTask(ToDoTask completeTask)
         {
             // Tasks names cannot contain group or string separators due to file reading
-            if (completeTask.Name.Contains(ToDoModelConstants.ToDoStringSeparator) ) return (false, ToDoModelConstants.InvalidTaskName);
+            if (completeTask.Name.Contains(ToDoModelConstants.ToDoStringSeparator)) return (false, ToDoModelConstants.InvalidTaskName);
             if (completeTask.Name == ToDoModelConstants.ToDoFileGroupSeparator) return (false, ToDoModelConstants.InvalidTaskName);
             if (completeTask.Name == ToDoModelConstants.ToDoCompletedSeparator) return (false, ToDoModelConstants.InvalidTaskName);
 
@@ -166,7 +164,7 @@ namespace ToDoApplicationConsole.ToDoModel
             }
         }
 
-       internal void PrintCompleted()
+        internal void PrintCompleted()
         {
             foreach (var toDoTask in _completedTasks)
             {
