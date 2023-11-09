@@ -11,6 +11,8 @@ namespace ToDoApplicationConsole.ToDoModel
         public const string GlobalGroupName = "GlobalGroup";
         public const string SaveDataFilePath = "./data/ToDoCollections.txt";
         public const string ToDoFileGroupSeparator = "---";
+        public const string ToDoCompletedSeparator= "+++";
+        public const string ToDoStringSeparator = "|";
 
         //Error messages
         public const string GroupDoesNotExist = "Error: Group does not exist";

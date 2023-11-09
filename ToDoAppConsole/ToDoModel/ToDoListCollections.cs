@@ -26,6 +26,10 @@ namespace ToDoApplicationConsole.ToDoModel
                     new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
         }
 
+        /// <summary>
+        /// Saves the lists to file.
+        /// </summary>
+        /// <param name="path">The file path.</param>
         public void SaveListsToFile(string path = ToDoModelConstants.SaveDataFilePath)
         {
             string fileString = ToDoModelConstants.ToDoFileGroupSeparator;
@@ -37,11 +41,108 @@ namespace ToDoApplicationConsole.ToDoModel
                     fileString += "\n" + task;
                 }
 
+                fileString += "\n" + ToDoModelConstants.ToDoCompletedSeparator;
+
+
+                foreach (string task in listGroup.Value.GetCompletedTaskData())
+                {
+                    fileString += "\n" + task;
+                }
+
+                fileString += "\n" + ToDoModelConstants.ToDoCompletedSeparator;
+
                 fileString += "\n" + ToDoModelConstants.ToDoFileGroupSeparator;
             }
 
-            Console.WriteLine(fileString);
+            try
+            {
+                if(File.Exists(path)) File.Delete(path);
+                File.WriteAllText(ToDoModelConstants.SaveDataFilePath, fileString);
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
         }
+
+        /// <summary>
+        /// Reads the lists from file the file must be in a valid format or else it will throw an exception.
+        /// </summary>
+        /// <param name="path">The file path.</param>
+        /// <returns>ToDoListCollection object</returns>
+        /// <exception cref="System.IO.IOException"></exception>
+        public static ToDoListCollections ReadListsFromFile(string path = ToDoModelConstants.SaveDataFilePath)
+        {
+            ToDoListCollections list = new ToDoListCollections(
+                new Dictionary<string, ToDoList>(new List<KeyValuePair<string, ToDoList>>()),
+                new Dictionary<string, ToDoList>(new List<KeyValuePair<string, ToDoList>>()));
+            try
+            {
+                int i = 0;
+                string[] data = File.ReadAllLines(path);
+                while (i < data.Length-1)
+                {
+                    // Parses a group
+                    if (data[i] == ToDoModelConstants.ToDoFileGroupSeparator)
+                    {
+                        string groupName = data[i+1];
+                        if (groupName != ToDoModelConstants.GlobalGroupName)
+                        {
+                            (bool success, string message) output = list.AddListGroup(groupName);
+                            if (output.success == false)
+                            {
+                                throw new IOException(output.message);
+                            }
+                        }
+
+                        // parses tasks of a group
+                        i++;
+                        while (data[i+1] != ToDoModelConstants.ToDoCompletedSeparator)
+                        {
+                            string[] splitTask = data[i + 1].Split(ToDoModelConstants.ToDoStringSeparator);
+                            string taskName = splitTask[0];
+                            DateTime completionTime = DateTime.Parse(splitTask[1]);
+                            (bool success, string message) output = list.AddTask(taskName, groupName, completionTime);
+                            if (output.success == false)
+                            {
+                                throw new IOException(output.message);
+                            }
+                            i++;
+                        }
+
+                        // parses completed tasks of the group
+                        i++;
+                        while (data[i+1] != ToDoModelConstants.ToDoCompletedSeparator)
+                        {
+
+                            string[] splitTask = data[i + 1].Split(ToDoModelConstants.ToDoStringSeparator);
+                            string taskName = splitTask[0];
+                            DateTime completionTime = DateTime.Parse(splitTask[1]);
+                            (bool success, string message) output = list.AddCompletedTask(taskName, groupName, completionTime);
+                            if (output.success == false)
+                            {
+                                throw new IOException(output.message);
+                            }
+                            i++;
+                        }
+
+                    }
+
+                    i++;
+                }
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
+            return list;
+        }
+
+
 
 
 
@@ -53,6 +154,7 @@ namespace ToDoApplicationConsole.ToDoModel
         public (bool success, string message) AddListGroup(string name)
         {
             if (name == ToDoModelConstants.ToDoFileGroupSeparator) return (false, ToDoModelConstants.InvalidGroupName);
+            if (name == ToDoModelConstants.ToDoCompletedSeparator) return (false, ToDoModelConstants.InvalidGroupName);
             if (_listGroups.ContainsKey(name)) return (false, ToDoModelConstants.GroupAlreadyExists);
             _listGroups.Add(name,
                 new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer()),
@@ -93,6 +195,14 @@ namespace ToDoApplicationConsole.ToDoModel
             if (!_listGroups.ContainsKey(group)) return (false, ToDoModelConstants.GroupDoesNotExist);
             ToDoList list = _listGroups[group];
             return list.Add(new ToDoTask(name, completionDateTime));
+        }
+
+        public (bool success, string message) AddCompletedTask(string name, string group = ToDoModelConstants.GlobalGroupName, DateTime completionDateTime = default)
+        {
+            if (completionDateTime == default) completionDateTime = DateTime.MaxValue;
+            if (!_listGroups.ContainsKey(group)) return (false, ToDoModelConstants.GroupDoesNotExist);
+            ToDoList list = _listGroups[group];
+            return list.AddCompletedTask(new ToDoTask(name, completionDateTime));
         }
 
         /// <summary>

@@ -31,7 +31,11 @@ namespace ToDoApplicationConsole.ToDoModel
         /// <returns>True if task was added successfully or false if addition failed.</returns>
         internal (bool success, string message) Add(ToDoTask task)
         {
+            // Tasks names cannot contain group or string separators due to file reading
             if (task.Name == ToDoModelConstants.ToDoFileGroupSeparator) return (false, ToDoModelConstants.InvalidTaskName);
+            if (task.Name.Contains(ToDoModelConstants.ToDoStringSeparator) ) return (false, ToDoModelConstants.InvalidTaskName);
+            if (task.Name == ToDoModelConstants.ToDoCompletedSeparator) return (false, ToDoModelConstants.InvalidTaskName);
+
             if (_tasks.Contains(task)) return (false, ToDoModelConstants.TaskAlreadyExists);
             // If Task was previously completed then un-complete it
             if (_completedTasks.Contains(task)) _completedTasks.Remove(task);
@@ -81,6 +85,11 @@ namespace ToDoApplicationConsole.ToDoModel
         /// <returns></returns>
         internal (bool success, string message) AddCompletedTask(ToDoTask completeTask)
         {
+            // Tasks names cannot contain group or string separators due to file reading
+            if (completeTask.Name.Contains(ToDoModelConstants.ToDoStringSeparator) ) return (false, ToDoModelConstants.InvalidTaskName);
+            if (completeTask.Name == ToDoModelConstants.ToDoFileGroupSeparator) return (false, ToDoModelConstants.InvalidTaskName);
+            if (completeTask.Name == ToDoModelConstants.ToDoCompletedSeparator) return (false, ToDoModelConstants.InvalidTaskName);
+
             if (_tasks.FirstOrDefault(task => task.Name == completeTask.Name) != null) return (false, ToDoModelConstants.TaskAlreadyExists);
             if (_completedTasks.FirstOrDefault(task => task.Name == completeTask.Name) != null) return (false, ToDoModelConstants.TaskAlreadyExists);
             _completedTasks.Add(completeTask);
@@ -119,6 +128,10 @@ namespace ToDoApplicationConsole.ToDoModel
             return (true, ToDoModelConstants.TaskCompletionUnDone);
         }
 
+        /// <summary>
+        /// Gets a list of strings containing the string representation of a task.
+        /// </summary>
+        /// <returns>List of string </returns>
         internal List<string> GetTaskData()
         {
             List<string> tasks = new List<string>();
@@ -129,13 +142,27 @@ namespace ToDoApplicationConsole.ToDoModel
             return tasks;
         }
 
+        /// <summary>
+        /// Gets the string representation of all the completed tasks.
+        /// </summary>
+        /// <returns>A list of strings </returns>
+        internal List<String> GetCompletedTaskData()
+        {
+            List<string> completedTasks = new List<string>();
+            foreach (var item in _completedTasks)
+            {
+                completedTasks.Add(item.ToString());
+            }
+            return completedTasks;
+        }
+
 
         // TODO: Delete this later, only for testing
         internal void PrintList()
         {
             foreach (var item in _tasks)
             {
-                Console.WriteLine(item.Name);
+                Console.WriteLine(item.Name + " " + item.CompletionDate);
             }
         }
 
