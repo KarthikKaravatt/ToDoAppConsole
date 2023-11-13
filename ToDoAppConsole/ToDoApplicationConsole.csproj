@@ -8,5 +8,13 @@
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <Folder Include="ToDoView\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Terminal.Gui" Version="1.14.1" />
+	</ItemGroup>
+
 </Project>
 
