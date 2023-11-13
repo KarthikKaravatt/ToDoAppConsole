@@ -17,13 +17,6 @@ namespace ToDoApplicationConsole
 
             var frameCount = 15;
             // Creates the top-level window to show
-            var win = new Window("Hello")
-            {
-                X = 0,
-                Y = Pos.Center(), // Leave one row for the toplevel menu
-                Width = Dim.Fill(),
-                Height = Dim.Fill()
-            };
             var scroll = new ScrollView()
             {
                 X = 0,
@@ -32,14 +25,15 @@ namespace ToDoApplicationConsole
                 Height = Dim.Fill(),
                 ContentSize = new Size((int)(Application.Top.Frame.Width), Application.Top.Frame.Height),
             };
+            // how scrolling works
+            var todoSize = 500;
             Application.Resized += (Application.ResizedEventArgs args) =>
             {
-                scroll.ContentSize = new Size((int)(Application.Top.Frame.Width+1000), Application.Top.Frame.Height);
+                scroll.ContentSize = new Size((int)(Application.Top.Frame.Width + todoSize), Application.Top.Frame.Height);
             };
-            scroll.ContentSize = new Size((int)(Application.Top.Frame.Width+1000), Application.Top.Frame.Height);
+            scroll.ContentSize = new Size((int)(Application.Top.Frame.Width + todoSize), Application.Top.Frame.Height);
 
-            win.Add(scroll);
-            top.Add(win);
+            top.Add(scroll);
             var frames = new List<FrameView>();
             for (int i = 0; i < frameCount; i++)
             {
@@ -50,9 +44,29 @@ namespace ToDoApplicationConsole
                     Width = Dim.Percent((1f / frameCount) * 100),
                     Height = Dim.Fill()
                 };
-                var text = new TextView()
+                var subFrame = new FrameView()
+                {
+
+                    X = 0,
+                    Y = 0,
+                    Width = Dim.Fill(),
+                    Height = Dim.Percent(15)
+                };
+                var button = new Button("Button")
                 {
                     X = 0,
+                    Y = 0,
+                    Width = Dim.Percent(15),
+                    Height = Dim.Percent(15),
+                };
+                button.Clicked += () =>
+                {
+                    subFrame.Visible = false;
+                };
+
+                var text = new TextView()
+                {
+                    X = Pos.Right(button),
                     Y = 0,
                     Width = Dim.Fill(),
                     Height = Dim.Fill(),
@@ -60,7 +74,9 @@ namespace ToDoApplicationConsole
                     ColorScheme = colorScheme
 
                 };
-                frame.Add(text);
+                subFrame.Add(button);
+                subFrame.Add(text);
+                frame.Add(subFrame);
                 frames.Add(frame);
             }
 
