@@ -1,20 +1,27 @@
-﻿namespace ToDoApplicationConsole.ToDoModel
+﻿using System.Globalization;
+using System.Text;
+using ToDoApplicationConsole.ToDoController;
+
+namespace ToDoApplicationConsole.ToDoModel
 {
     /// <summary>
     /// A collection of ToDoList objects organized by groups
     /// </summary>
     internal class ToDoListCollections
     {
-        private readonly Dictionary<string, ToDoList> _listGroups;
+        private readonly Dictionary<string, ToDoList> _listGroups =
+            new Dictionary<string, ToDoList>(new List<KeyValuePair<string, ToDoList>>());
+
+        private ApplicationController _applicationController;
 
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ToDoListCollections"/> class.
         /// </summary>
-        /// <param name="listGroups">The list groups.</param>
-        public ToDoListCollections(Dictionary<string, ToDoList> listGroups)
+        /// <param name="applicationController">The application controller.</param>
+        public ToDoListCollections(ApplicationController applicationController)
         {
-            _listGroups = listGroups;
+            _applicationController = applicationController;
             // Default Group
             _listGroups.Add(ToDoModelConstants.GlobalGroupName,
                 new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer()),
@@ -27,51 +34,53 @@
         /// <param name="path">The file path.</param>
         public void SaveListsToFile(string path = ToDoModelConstants.SaveDataFilePath)
         {
-            string fileString = ToDoModelConstants.ToDoFileGroupSeparator;
+            StringBuilder fileString = new StringBuilder(ToDoModelConstants.ToDoFileGroupSeparator);
+
+            // Iterate over To Do groups
             foreach (KeyValuePair<string, ToDoList> listGroup in _listGroups)
             {
-                fileString += "\n" + listGroup.Key;
+                fileString.AppendLine();
+                fileString.AppendLine(listGroup.Key);
+
                 foreach (string task in listGroup.Value.GetTaskData())
                 {
-                    fileString += "\n" + task;
+                    fileString.AppendLine(task);
                 }
 
-                fileString += "\n" + ToDoModelConstants.ToDoCompletedSeparator;
-
+                fileString.AppendLine(ToDoModelConstants.ToDoCompletedSeparator);
 
                 foreach (string task in listGroup.Value.GetCompletedTaskData())
                 {
-                    fileString += "\n" + task;
+                    fileString.AppendLine(task);
                 }
 
-                fileString += "\n" + ToDoModelConstants.ToDoCompletedSeparator;
-
-                fileString += "\n" + ToDoModelConstants.ToDoFileGroupSeparator;
+                fileString.AppendLine(ToDoModelConstants.ToDoCompletedSeparator);
+                fileString.AppendLine(ToDoModelConstants.ToDoFileGroupSeparator);
             }
 
             try
             {
                 if (File.Exists(path)) File.Delete(path);
-                File.WriteAllText(ToDoModelConstants.SaveDataFilePath, fileString);
+                File.WriteAllText(ToDoModelConstants.SaveDataFilePath, fileString.ToString());
             }
             catch (IOException e)
             {
                 Console.WriteLine(e);
                 throw;
             }
-
         }
+
 
         /// <summary>
         /// Reads the lists from file the file must be in a valid format or else it will throw an exception.
         /// </summary>
         /// <param name="path">The file path.</param>
+        /// <param name="applicationController">The controller</param>
         /// <returns>ToDoListCollection object</returns>
         /// <exception cref="System.IO.IOException"></exception>
-        public static ToDoListCollections ReadListsFromFile(string path = ToDoModelConstants.SaveDataFilePath)
+        public static ToDoListCollections ReadListsFromFile(ApplicationController applicationController, string path = ToDoModelConstants.SaveDataFilePath)
         {
-            ToDoListCollections list = new ToDoListCollections(
-                new Dictionary<string, ToDoList>(new List<KeyValuePair<string, ToDoList>>()));
+            ToDoListCollections list = new ToDoListCollections(applicationController);
             try
             {
                 int i = 0;
@@ -86,7 +95,7 @@
                         if (groupName != ToDoModelConstants.GlobalGroupName)
                         {
                             (bool success, string message) output = list.AddListGroup(groupName);
-                            if (output.success == false)
+                            if (!output.success)
                             {
                                 throw new IOException(output.message);
                             }
@@ -98,9 +107,9 @@
                         {
                             string[] splitTask = data[i + 1].Split(ToDoModelConstants.ToDoStringSeparator);
                             string taskName = splitTask[0];
-                            DateTime completionTime = DateTime.Parse(splitTask[1]);
+                            DateTime completionTime = DateTime.Parse(splitTask[1], new CultureInfo("en-AU"));
                             (bool success, string message) output = list.AddTask(taskName, groupName, completionTime);
-                            if (output.success == false)
+                            if (!output.success)
                             {
                                 throw new IOException(output.message);
                             }
@@ -114,9 +123,9 @@
 
                             string[] splitTask = data[i + 1].Split(ToDoModelConstants.ToDoStringSeparator);
                             string taskName = splitTask[0];
-                            DateTime completionTime = DateTime.Parse(splitTask[1]);
+                            DateTime completionTime = DateTime.Parse(splitTask[1], new CultureInfo("en-AU"));
                             (bool success, string message) output = list.AddCompletedTask(taskName, groupName, completionTime);
-                            if (output.success == false)
+                            if (!output.success)
                             {
                                 throw new IOException(output.message);
                             }
