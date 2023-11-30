@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Terminal.Gui;
+using ToDoApplicationConsole.ToDoController;
 using ToDoApplicationConsole.ToDoModel;
 
 namespace ToDoApplicationConsole.ToDoView
@@ -12,20 +13,17 @@ namespace ToDoApplicationConsole.ToDoView
     {
         private readonly View _mainWindow;
         private readonly ScrollView _contentWindow;
-        private readonly ToDoListCollections _listCollections;
-        private readonly ApplicationAddTaskGroupUi _applicationAddTaskGroupUi;
-        public ApplicationUi(ToDoListCollections toDoListCollections)
+        private readonly ApplicationAddTaskGroupDialogUi _applicationAddTaskGroupDialogUi;
+        private ApplicationController _applicationController;
+        public ApplicationUi(ApplicationController controller)
         {
-            _applicationAddTaskGroupUi = new ApplicationAddTaskGroupUi();
-            _listCollections = toDoListCollections;
+            _applicationController = controller;
             (_mainWindow, _contentWindow) = InitializeMainWindow();
+            _applicationAddTaskGroupDialogUi = new ApplicationAddTaskGroupDialogUi(_contentWindow, controller);
+            Application.Top.Add(_mainWindow);
             SetKeyBinds();
         }
 
-        public View GetUi()
-        {
-            return _mainWindow;
-        }
 
         private static (View mainWindow, ScrollView conetnWindow) InitializeMainWindow()
         {
@@ -76,7 +74,7 @@ namespace ToDoApplicationConsole.ToDoView
 
         private void AddToDoGroup()
         {
-            _applicationAddTaskGroupUi.AddToDoGroupDialog(_mainWindow, _contentWindow, _listCollections);
+            _applicationAddTaskGroupDialogUi.AddToDoGroupDialog(_mainWindow, _contentWindow);
         }
 
 

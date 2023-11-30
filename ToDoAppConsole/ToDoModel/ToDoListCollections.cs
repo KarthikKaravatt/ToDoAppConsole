@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Text;
+using ToDoApplicationConsole.ToDoController;
 
 namespace ToDoApplicationConsole.ToDoModel
 {
@@ -11,13 +12,16 @@ namespace ToDoApplicationConsole.ToDoModel
         private readonly Dictionary<string, ToDoList> _listGroups =
             new Dictionary<string, ToDoList>(new List<KeyValuePair<string, ToDoList>>());
 
+        private ApplicationController _applicationController;
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ToDoListCollections"/> class.
         /// </summary>
-        /// <param name="listGroups">The list groups.</param>
-        public ToDoListCollections()
+        /// <param name="applicationController">The application controller.</param>
+        public ToDoListCollections(ApplicationController applicationController)
         {
+            _applicationController = applicationController;
             // Default Group
             _listGroups.Add(ToDoModelConstants.GlobalGroupName,
                 new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer()),
@@ -71,11 +75,12 @@ namespace ToDoApplicationConsole.ToDoModel
         /// Reads the lists from file the file must be in a valid format or else it will throw an exception.
         /// </summary>
         /// <param name="path">The file path.</param>
+        /// <param name="applicationController">The controller</param>
         /// <returns>ToDoListCollection object</returns>
         /// <exception cref="System.IO.IOException"></exception>
-        public static ToDoListCollections ReadListsFromFile(string path = ToDoModelConstants.SaveDataFilePath)
+        public static ToDoListCollections ReadListsFromFile(ApplicationController applicationController, string path = ToDoModelConstants.SaveDataFilePath)
         {
-            ToDoListCollections list = new ToDoListCollections();
+            ToDoListCollections list = new ToDoListCollections(applicationController);
             try
             {
                 int i = 0;

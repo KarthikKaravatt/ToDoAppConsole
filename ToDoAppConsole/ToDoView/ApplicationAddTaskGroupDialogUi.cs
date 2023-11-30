@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Terminal.Gui;
+using ToDoApplicationConsole.ToDoController;
 using ToDoApplicationConsole.ToDoModel;
 
 namespace ToDoApplicationConsole.ToDoView
 {
-    internal class ApplicationAddTaskGroupUi
+    internal class ApplicationAddTaskGroupDialogUi
     {
         private readonly Dialog _addToDoGroupDialog = SetupAddToDoGroupDialogue();
         private readonly Dialog _errorDialog = SetupErrorDialog();
@@ -22,13 +23,22 @@ namespace ToDoApplicationConsole.ToDoView
             Width = Dim.Percent(ApplicationUiConstants.AddToDoGroupTextFieldWidthPercent),
         };
 
-        public ApplicationAddTaskGroupUi()
+        private FrameView _lastFrameView;
+
+        private readonly ApplicationController _controller;
+
+        public ApplicationAddTaskGroupDialogUi(ScrollView contentWindow, ApplicationController controller)
         {
+            _controller = controller;
             _addToDoGroupDialog.Add(_addToDoGroupTextField);
             _addToDoGroupDialog.AddButton(_addToDoGroupOkButton);
             _addToDoGroupDialog.AddButton(_addToDoGroupCancelButton);
             _errorDialog.AddButton(_errorDialogOkButton);
+            ApplicationTaskGroupUi defaultGroupUi = new ApplicationTaskGroupUi(ToDoModelConstants.GlobalGroupName);
+            _lastFrameView = defaultGroupUi.AddTaskGroup(contentWindow);
+
         }
+
 
         private static Dialog SetupAddToDoGroupDialogue()
         {
@@ -73,47 +83,58 @@ namespace ToDoApplicationConsole.ToDoView
             return errorDialog;
         }
 
-
-        public void AddToDoGroupDialog(View mainWindow, ScrollView contentWindow, ToDoListCollections toDoListCollections)
+        public void AddToDoGroupDialog(View mainWindow, ScrollView contentWindow)
         {
+            bool added = false;
             _addToDoGroupTextField.Text = String.Empty;
             contentWindow.Enabled = false;
             mainWindow.Add(_addToDoGroupDialog);
             _addToDoGroupOkButton.Clicked += () =>
             {
-                string? groupName = _addToDoGroupTextField.Text.ToString();
-                mainWindow.Remove(_addToDoGroupDialog);
-                if (!String.IsNullOrEmpty(groupName))
+                if (!added)
                 {
-                    (bool success, string message) result = toDoListCollections.AddListGroup(groupName);
-                    _errorDialog.Text = result.message;
-                    if (result.success)
+
+                    string? groupName = _addToDoGroupTextField.Text.ToString();
+                    if (!String.IsNullOrEmpty(groupName))
                     {
-                        contentWindow.Enabled = true;
-                        contentWindow.FocusFirst();
+                        (bool success, string message) result = _controller.AddToDoGroup(groupName);
+                        _errorDialog.Text = result.message;
+                        if (result.success)
+                        {
+                            ApplicationTaskGroupUi taskGroup = new ApplicationTaskGroupUi(groupName);
+                            _lastFrameView = taskGroup.AddTaskGroup(contentWindow, _lastFrameView);
+                            contentWindow.Enabled = true;
+                            contentWindow.FocusFirst();
+                            added = true;
+                        }
+                        else
+                        {
+                            mainWindow.Add(_errorDialog);
+                        }
                     }
                     else
                     {
+                        _errorDialog.Text = ApplicationUiConstants.NameNotEnteredError;
                         mainWindow.Add(_errorDialog);
                     }
                 }
-                else
-                {
-                    _errorDialog.Text = ApplicationUiConstants.NameNotEnteredError;
-                    mainWindow.Add(_errorDialog);
-                }
+
+                mainWindow.Remove(_addToDoGroupDialog);
 
             };
             _addToDoGroupCancelButton.Clicked += () =>
             {
+                added = true;
                 contentWindow.Enabled = true;
                 contentWindow.FocusFirst();
                 mainWindow.Remove(_addToDoGroupDialog);
             };
             _errorDialogOkButton.Clicked += () =>
             {
+                added = true;
+                contentWindow.Enabled = true;
+                contentWindow.FocusFirst();
                 mainWindow.Remove(_errorDialog);
-                mainWindow.Add(_addToDoGroupDialog);
             };
         }
     }
