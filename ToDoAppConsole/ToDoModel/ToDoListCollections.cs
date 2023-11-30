@@ -179,6 +179,7 @@ namespace ToDoApplicationConsole.ToDoModel
                     new ToDoList(new SortedSet<ToDoTask>(new TaskCompletionDateComparer()),
                         new SortedSet<ToDoTask>(new TaskCompletionDateComparer())));
             }
+
             return (true, ToDoModelConstants.GroupRemoved);
         }
 
@@ -268,6 +269,11 @@ namespace ToDoApplicationConsole.ToDoModel
                 ? (false, ToDoModelConstants.GroupDoesNotExist)
                 : _listGroups[groupName]
                     .UndoCompleted(name);
+        }
+
+        public int GetListSize()
+        {
+            return _listGroups.Count;
         }
 
         //TODO: Delete this, for testing only

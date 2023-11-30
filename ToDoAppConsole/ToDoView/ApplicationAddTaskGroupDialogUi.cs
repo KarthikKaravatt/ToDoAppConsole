@@ -83,14 +83,16 @@ namespace ToDoApplicationConsole.ToDoView
             return errorDialog;
         }
 
-        public void AddToDoGroupDialog(View mainWindow, ScrollView contentWindow)
+        private void ResizeContentWindow(ScrollView contentWindow)
         {
-            bool added = false;
-            _addToDoGroupTextField.Text = String.Empty;
-            contentWindow.Enabled = false;
-            mainWindow.Add(_addToDoGroupDialog);
-            _addToDoGroupOkButton.Clicked += () =>
-            {
+            int listSize= _controller.GetListSize();
+            Size contentSize = contentWindow.ContentSize;
+
+            contentWindow.ContentSize = new Size(ApplicationUiConstants.ToDoListSize *listSize, contentSize.Height);
+        }
+
+        private void HandleToDoGroupOkayButtonClick(ref bool added, ScrollView contentWindow, View mainWindow)
+        {
                 if (!added)
                 {
 
@@ -105,6 +107,7 @@ namespace ToDoApplicationConsole.ToDoView
                             _lastFrameView = taskGroup.AddTaskGroup(contentWindow, _lastFrameView);
                             contentWindow.Enabled = true;
                             contentWindow.FocusFirst();
+                            ResizeContentWindow(contentWindow);
                             added = true;
                         }
                         else
@@ -120,22 +123,35 @@ namespace ToDoApplicationConsole.ToDoView
                 }
 
                 mainWindow.Remove(_addToDoGroupDialog);
+        }
 
-            };
-            _addToDoGroupCancelButton.Clicked += () =>
-            {
+        private void HandleToDoGroupCancelButtonClicked(out bool added, ScrollView contentWindow, View mainWindow)
+        {
                 added = true;
                 contentWindow.Enabled = true;
                 contentWindow.FocusFirst();
                 mainWindow.Remove(_addToDoGroupDialog);
-            };
-            _errorDialogOkButton.Clicked += () =>
-            {
+        }
+
+        private void HandleErrorDialogOkayButtonClick(out bool added, ScrollView contentWindow, View mainWindow)
+        {
                 added = true;
                 contentWindow.Enabled = true;
                 contentWindow.FocusFirst();
                 mainWindow.Remove(_errorDialog);
-            };
+        }
+
+        public void AddToDoGroupDialog(View mainWindow, ScrollView contentWindow)
+        {
+            _addToDoGroupTextField.Text = String.Empty;
+            bool added = false;
+            contentWindow.Enabled = false;
+            mainWindow.Add(_addToDoGroupDialog);
+            _addToDoGroupOkButton.Clicked += () => HandleToDoGroupOkayButtonClick(ref added, contentWindow, mainWindow);
+            _addToDoGroupCancelButton.Clicked +=
+                () => HandleToDoGroupCancelButtonClicked(out added, contentWindow, mainWindow);
+            _errorDialogOkButton.Clicked +=
+                () => HandleErrorDialogOkayButtonClick(out added, contentWindow, mainWindow);
         }
     }
 }

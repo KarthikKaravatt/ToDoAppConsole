@@ -3,7 +3,7 @@ using ToDoApplicationConsole.ToDoModel;
 using ToDoApplicationConsole.ToDoController;
 namespace ToDoApplicationConsole
 {
-    internal class Program
+    internal static class Program
     {
         private static int Main()
         {

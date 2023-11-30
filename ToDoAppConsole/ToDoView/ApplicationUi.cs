@@ -25,7 +25,7 @@ namespace ToDoApplicationConsole.ToDoView
         }
 
 
-        private static (View mainWindow, ScrollView conetnWindow) InitializeMainWindow()
+        private static (View mainWindow, ScrollView contentWindow) InitializeMainWindow()
         {
             View view = new View()
             {
@@ -40,17 +40,17 @@ namespace ToDoApplicationConsole.ToDoView
                 Y = 0,
                 Width = Dim.Fill(),
                 Height = Dim.Fill(),
-                ContentSize = new Size(Application.Top.Frame.Width, Application.Top.Frame.Height),
+                ContentSize = new Size(0, Application.Top.Frame.Height),
                 AutoHideScrollBars = true,
             };
             Application.Resized += (Application.ResizedEventArgs args) =>
             {
-                scroll.ContentSize = new Size(Application.Top.Frame.Width + ApplicationUiConstants.ToDoListSize, Application.Top.Frame.Height);
+                Size curSize = scroll.ContentSize;
+                scroll.ContentSize = new Size(curSize.Width,Application.Top.Frame.Height);
             };
-            scroll.ContentSize = new Size(Application.Top.Frame.Width + ApplicationUiConstants.ToDoListSize, Application.Top.Frame.Height);
+            scroll.ContentSize = new Size(ApplicationUiConstants.ToDoListSize, Application.Top.Frame.Height);
             view.Add(scroll);
             return (view, scroll);
-
         }
 
         private void SetKeyBinds()

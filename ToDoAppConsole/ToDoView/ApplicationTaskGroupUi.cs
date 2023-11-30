@@ -17,7 +17,7 @@ namespace ToDoApplicationConsole.ToDoView
             {
                 Y = 0,
                 Height = Dim.Fill(),
-                Width = Dim.Percent(5)
+                Width = Dim.Sized(ApplicationUiConstants.ToDoListSize)
             };
         }
 

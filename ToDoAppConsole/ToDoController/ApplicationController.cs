@@ -24,5 +24,10 @@ namespace ToDoApplicationConsole.ToDoController
             return _toDoList.AddListGroup(name);
         }
 
+        public int GetListSize()
+        {
+            return _toDoList.GetListSize();
+        }
+
     }
 }
