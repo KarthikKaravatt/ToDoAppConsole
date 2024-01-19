@@ -14,12 +14,12 @@ namespace ToDoApplicationConsole.ToDoView
         private readonly View _mainWindow;
         private readonly ScrollView _contentWindow;
         private readonly ApplicationAddTaskGroupDialogUi _applicationAddTaskGroupDialogUi;
-        private ApplicationController _applicationController;
+        private readonly ApplicationController _applicationController;
         public ApplicationUi(ApplicationController controller)
         {
             _applicationController = controller;
             (_mainWindow, _contentWindow) = InitializeMainWindow();
-            _applicationAddTaskGroupDialogUi = new ApplicationAddTaskGroupDialogUi(_contentWindow, controller);
+            _applicationAddTaskGroupDialogUi = new ApplicationAddTaskGroupDialogUi(_mainWindow, _contentWindow, controller);
             Application.Top.Add(_mainWindow);
             SetKeyBinds();
         }
@@ -46,7 +46,7 @@ namespace ToDoApplicationConsole.ToDoView
             Application.Resized += (Application.ResizedEventArgs args) =>
             {
                 Size curSize = scroll.ContentSize;
-                scroll.ContentSize = new Size(curSize.Width,Application.Top.Frame.Height);
+                scroll.ContentSize = new Size(curSize.Width, Application.Top.Frame.Height);
             };
             scroll.ContentSize = new Size(ApplicationUiConstants.ToDoListSize, Application.Top.Frame.Height);
             view.Add(scroll);
@@ -57,24 +57,28 @@ namespace ToDoApplicationConsole.ToDoView
         {
             _contentWindow.KeyPress += (e) =>
             {
-
-                switch (e.KeyEvent.Key)
+                if (_contentWindow.HasFocus)
                 {
-                    case Key.G:
-                        AddToDoGroup();
-                        break;
-                    case Key.S:
-                        Application.RequestStop();
-                        break;
+                    switch (e.KeyEvent.Key)
+                    {
+                        case Key.G:
+                            AddToDoGroup(_applicationController);
+                            break;
+                        case Key.S:
+                            Application.RequestStop();
+                            break;
+                        default:
+                            break;
 
+                    }
                 }
 
             };
         }
 
-        private void AddToDoGroup()
+        private void AddToDoGroup(ApplicationController controller)
         {
-            _applicationAddTaskGroupDialogUi.AddToDoGroupDialog(_mainWindow, _contentWindow);
+            _applicationAddTaskGroupDialogUi.AddToDoGroupDialog(_mainWindow, _contentWindow, controller);
         }
 
 

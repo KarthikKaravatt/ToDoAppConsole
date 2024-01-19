@@ -24,6 +24,11 @@ namespace ToDoApplicationConsole.ToDoController
             return _toDoList.AddListGroup(name);
         }
 
+        public (bool success, string messsage) AddToDoTask(string groupName, string taskName, DateTime dateTime)
+        {
+            return _toDoList.AddTask(taskName, groupName, dateTime);
+        }
+
         public int GetListSize()
         {
             return _toDoList.GetListSize();

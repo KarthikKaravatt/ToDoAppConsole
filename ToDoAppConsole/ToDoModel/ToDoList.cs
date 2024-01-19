@@ -34,6 +34,7 @@
             if (task.Name.Contains(ToDoModelConstants.ToDoStringSeparator)) return (false, ToDoModelConstants.InvalidTaskName);
             if (task.Name == ToDoModelConstants.ToDoCompletedSeparator) return (false, ToDoModelConstants.InvalidTaskName);
 
+            //TODO: changing the tasks date with the same name makes it a new task
             if (_tasks.Contains(task)) return (false, ToDoModelConstants.TaskAlreadyExists);
             // If Task was previously completed then un-complete it
             if (_completedTasks.Contains(task)) _completedTasks.Remove(task);

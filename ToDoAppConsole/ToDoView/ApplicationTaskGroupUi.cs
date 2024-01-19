@@ -2,55 +2,58 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using NStack;
 using Terminal.Gui;
+using ToDoApplicationConsole.ToDoController;
 
 namespace ToDoApplicationConsole.ToDoView
 {
     internal class ApplicationTaskGroupUi
     {
         private readonly FrameView _groupFrame;
-        private readonly ListView _groupList;
-
-        public ApplicationTaskGroupUi(string groupName)
+        private readonly ListView _taskListView;
+        private readonly List<string> _taskList;
+        private readonly ScrollView _contentWindow;
+        private readonly ApplicationAddTaskDialogUi _applicationAddTaskDialog;
+        public ApplicationTaskGroupUi(string groupName,View mainWindow, ScrollView contentWindow, ApplicationController controller)
         {
-            List<string> testString = new List<string>();
-            testString.Add("Bruh");
-            testString.Add("test");
-            testString.Add("lol");
+            _contentWindow = contentWindow;
+            _taskList = new List<string>();
+            _applicationAddTaskDialog = new ApplicationAddTaskDialogUi(groupName);
             _groupFrame = new FrameView(groupName)
             {
                 Y = 0,
                 Height = Dim.Fill(),
                 Width = Dim.Sized(ApplicationUiConstants.ToDoListSize),
+                CanFocus = true
             };
-            _groupList = new ListView(testString)
+            _taskListView = new ListView(_taskList)
             {
-                Y = 0,
+                AllowsMarking = true,
                 Height = Dim.Fill(),
-                Width = Dim.Sized(ApplicationUiConstants.ToDoListSize),
-                AllowsMarking = true
+                Width = Dim.Fill()
             };
-            _groupFrame.Add(_groupList);
-            SetupKeyBinds(_groupList);
+            _groupFrame.Add(_taskListView);
+            SetupKeyBinds(mainWindow, contentWindow, controller);
         }
 
-        public static void SetupKeyBinds(ListView frame)
+        private void SetupKeyBinds(View mainView, ScrollView contentView, ApplicationController controller)
         {
-            frame.KeyPress += (e) =>
+            _groupFrame.KeyPress += (e) =>
             {
-                switch (e.KeyEvent.Key)
+                if (_groupFrame.HasFocus)
                 {
-                    case Key.T:
-                        Console.WriteLine("Test");
-                        break;
-
-                    default:
-                        break;
+                    switch (e.KeyEvent.Key)
+                    {
+                        case Key.T:
+                            _applicationAddTaskDialog.ShowDialog(mainView, contentView, controller, _taskList);
+                            break;
+                    }
                 }
             };
-
         }
 
         public FrameView AddTaskGroup(ScrollView contentWindow)
