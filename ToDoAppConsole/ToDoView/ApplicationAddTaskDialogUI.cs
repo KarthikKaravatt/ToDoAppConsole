@@ -12,6 +12,8 @@ namespace ToDoApplicationConsole.ToDoView
 {
     internal class ApplicationAddTaskDialogUi
     {
+        private readonly View _mainView;
+        private readonly ScrollView _contentView;
         private readonly string _groupName;
         private readonly Dialog _addTaskDialog = new()
         {
@@ -25,8 +27,10 @@ namespace ToDoApplicationConsole.ToDoView
         private int _month;
         private int _year;
 
-        public ApplicationAddTaskDialogUi(string groupName)
+        public ApplicationAddTaskDialogUi(string groupName, View mainView, ScrollView contentView)
         {
+            this._mainView = mainView;
+            this._contentView = contentView;
             _groupName = groupName;
             FrameView name = SetUpNameFrame();
             FrameView date = SetUpDateFrame(name);
@@ -139,26 +143,25 @@ namespace ToDoApplicationConsole.ToDoView
         }
 
 
-        public void ShowDialog(View mainView, ScrollView contentView, ApplicationController controller,
-            List<string> taskList)
+        public void ShowDialog(ApplicationController controller, List<string> taskList)
         {
-            SetupButtons(mainView, contentView, controller, taskList);
-            contentView.Enabled = false;
-            mainView.Add(_addTaskDialog);
+            SetupButtons(controller, taskList);
+            _contentView.Enabled = false;
+            _mainView.Add(_addTaskDialog);
             _addTaskDialog.EnsureFocus();
         }
 
-        private void SetupButtons(View mainVew, ScrollView contentView, ApplicationController controller, List<string> taskList)
+        private void SetupButtons(ApplicationController controller, List<string> taskList)
         {
-            _cancelButton.Clicked += () => OnCancelButtonOnClicked(mainVew, contentView);
+            _cancelButton.Clicked += OnCancelButtonOnClicked;
 
             _okButton.Clicked += () => OnOkButtonClicked(controller, taskList);
         }
-        private void OnCancelButtonOnClicked(View mainVew, ScrollView contentView)
+        private void OnCancelButtonOnClicked()
         {
-            mainVew.Remove(_addTaskDialog);
-            contentView.Enabled = true;
-            contentView.EnsureFocus();
+            _mainView.Remove(_addTaskDialog);
+            _contentView.Enabled = true;
+            _contentView.EnsureFocus();
         }
         private void OnOkButtonClicked(ApplicationController controller, List<string> taskList)
         {
@@ -172,22 +175,45 @@ namespace ToDoApplicationConsole.ToDoView
                 result = controller.AddToDoTask(_groupName, _taskName, date);
                 if (result.success)
                 {
-                    string taskString = _taskName + date;
+                    string taskString = _taskName +" "+ DateOnly.FromDateTime(date);
                     taskList.Add(taskString);
                     Application.Refresh();
                 }
                 else
                 {
-                    //TODO: show error dialog
+                    Dialog errorDialog = CreateErrorDialog(result.message);
+                    _mainView.Remove(_addTaskDialog);
+                    _mainView.Add(errorDialog);
                 }
             }
             catch (ArgumentOutOfRangeException e)
             {
-                //TODO: show error dialog
-                Console.WriteLine(e);
+                Dialog errorDialog = CreateErrorDialog(e.Message);
+                _mainView.Remove(_addTaskDialog);
+                _mainView.Add(errorDialog);
             }
 
         }
 
+        private Dialog CreateErrorDialog(string message)
+        {
+            Dialog errorDialog = new Dialog()
+            {
+                Width = Dim.Percent(ApplicationUiConstants.AddTaskDialogSize),
+                Height = Dim.Percent(ApplicationUiConstants.AddTaskDialogSize),
+                X = Pos.Center(),
+                Y = Pos.Center(),
+                Text = message,
+                TextAlignment = TextAlignment.Centered
+            };
+            Button okButton = new Button(ApplicationUiConstants.OkButtonName);
+            okButton.Clicked += () =>
+            {
+                _mainView.Remove(errorDialog);
+                _mainView.Add(_addTaskDialog);
+            };
+            errorDialog.AddButton(okButton);
+            return errorDialog;
+        }
     }
 }

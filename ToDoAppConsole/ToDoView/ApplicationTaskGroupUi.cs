@@ -16,13 +16,11 @@ namespace ToDoApplicationConsole.ToDoView
         private readonly FrameView _groupFrame;
         private readonly ListView _taskListView;
         private readonly List<string> _taskList;
-        private readonly ScrollView _contentWindow;
         private readonly ApplicationAddTaskDialogUi _applicationAddTaskDialog;
         public ApplicationTaskGroupUi(string groupName,View mainWindow, ScrollView contentWindow, ApplicationController controller)
         {
-            _contentWindow = contentWindow;
             _taskList = new List<string>();
-            _applicationAddTaskDialog = new ApplicationAddTaskDialogUi(groupName);
+            _applicationAddTaskDialog = new ApplicationAddTaskDialogUi(groupName, mainWindow, contentWindow);
             _groupFrame = new FrameView(groupName)
             {
                 Y = 0,
@@ -37,10 +35,10 @@ namespace ToDoApplicationConsole.ToDoView
                 Width = Dim.Fill()
             };
             _groupFrame.Add(_taskListView);
-            SetupKeyBinds(mainWindow, contentWindow, controller);
+            SetupKeyBinds(controller);
         }
 
-        private void SetupKeyBinds(View mainView, ScrollView contentView, ApplicationController controller)
+        private void SetupKeyBinds( ApplicationController controller)
         {
             _groupFrame.KeyPress += (e) =>
             {
@@ -49,7 +47,7 @@ namespace ToDoApplicationConsole.ToDoView
                     switch (e.KeyEvent.Key)
                     {
                         case Key.T:
-                            _applicationAddTaskDialog.ShowDialog(mainView, contentView, controller, _taskList);
+                            _applicationAddTaskDialog.ShowDialog(controller, _taskList);
                             break;
                     }
                 }
