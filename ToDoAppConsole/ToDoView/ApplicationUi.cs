@@ -55,7 +55,7 @@ namespace ToDoApplicationConsole.ToDoView
 
         private void SetKeyBinds()
         {
-            _contentWindow.KeyPress += (e) =>
+            _contentWindow.KeyDown+= (e) =>
             {
                 if (_contentWindow.HasFocus)
                 {

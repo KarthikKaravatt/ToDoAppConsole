@@ -167,15 +167,14 @@ namespace ToDoApplicationConsole.ToDoView
         {
             try
             {
-                (bool success, string message) result;
-            //TODO: Add the ability to set a time
+                //TODO: Add the ability to set a time
 #pragma warning disable S6562 // Always set the "DateTimeKind" when creating new "DateTime" instances
                 DateTime date = new(_year, _month, _day);
 #pragma warning restore S6562 // Always set the "DateTimeKind" when creating new "DateTime" instances
-                result = controller.AddToDoTask(_groupName, _taskName, date);
+                (bool success, string message) result = controller.AddToDoTask(_groupName, _taskName, date);
                 if (result.success)
                 {
-                    string taskString = _taskName +" "+ DateOnly.FromDateTime(date);
+                    string taskString = _taskName +"|"+ DateOnly.FromDateTime(date);
                     taskList.Add(taskString);
                     Application.Refresh();
                 }

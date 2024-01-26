@@ -13,14 +13,18 @@ namespace ToDoApplicationConsole.ToDoView
 {
     internal class ApplicationTaskGroupUi
     {
+        private readonly string _groupName;
         private readonly FrameView _groupFrame;
         private readonly ListView _taskListView;
         private readonly List<string> _taskList;
         private readonly ApplicationAddTaskDialogUi _applicationAddTaskDialog;
+
+        private bool _isDKeyPressed = false;
         public ApplicationTaskGroupUi(string groupName,View mainWindow, ScrollView contentWindow, ApplicationController controller)
         {
             _taskList = new List<string>();
             _applicationAddTaskDialog = new ApplicationAddTaskDialogUi(groupName, mainWindow, contentWindow);
+            _groupName = groupName;
             _groupFrame = new FrameView(groupName)
             {
                 Y = 0,
@@ -40,7 +44,7 @@ namespace ToDoApplicationConsole.ToDoView
 
         private void SetupKeyBinds( ApplicationController controller)
         {
-            _groupFrame.KeyPress += (e) =>
+            _groupFrame.KeyDown+= (e) =>
             {
                 if (_groupFrame.HasFocus)
                 {
@@ -49,8 +53,28 @@ namespace ToDoApplicationConsole.ToDoView
                         case Key.T:
                             _applicationAddTaskDialog.ShowDialog(controller, _taskList);
                             break;
+                        case Key.D:
+                            if (!_isDKeyPressed)
+                            {
+                                _isDKeyPressed = true;
+                                int curTaskIndex = _taskListView.SelectedItem;
+                                string curTask = _taskList[curTaskIndex];
+                                string curTaskName = curTask.Split("|")[0];
+                                _taskList.RemoveAt(curTaskIndex);
+                                controller.RemoveToDoTask(_groupName, curTaskName);
+                                Application.Refresh();
+                            }
+                            break;
                     }
                 }
+            };
+            _groupFrame.KeyUp += (e) =>
+            {
+                if (e.KeyEvent.Key == Key.D)
+                {
+                    _isDKeyPressed = false;
+                }
+
             };
         }
 

@@ -29,6 +29,11 @@ namespace ToDoApplicationConsole.ToDoController
             return _toDoList.AddTask(taskName, groupName, dateTime);
         }
 
+        public (bool success, string message) RemoveToDoTask(string groupName, string taskName)
+        {
+            return _toDoList.RemoveTask(taskName, groupName);
+        }
+
         public int GetListSize()
         {
             return _toDoList.GetListSize();
